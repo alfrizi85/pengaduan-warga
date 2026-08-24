@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
@@ -8,7 +8,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Prefix utama seluruh REST API.
-  // Contoh: /api/users, /api/complaints
   app.setGlobalPrefix('api');
 
   // API versioning menggunakan URL.
@@ -17,6 +16,15 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: '1',
   });
+
+  // Validasi request secara global.
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // Ambil PORT dari environment melalui ConfigService.
   const configService = app.get(ConfigService);
