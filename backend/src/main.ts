@@ -3,6 +3,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,8 +27,20 @@ async function bootstrap() {
     }),
   );
 
-  // Ambil PORT dari environment melalui ConfigService.
+  // Filter exception secara global.
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Ambil konfigurasi dari .env
   const configService = app.get(ConfigService);
+
+  // Origin frontend yang diizinkan mengakses API.
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+
+  // Aktifkan CORS hanya untuk frontend yang kita izinkan.
+  app.enableCors({
+    origin: frontendUrl,
+  });
+
   const port = Number(configService.get<string>('PORT')) || 3000;
 
   await app.listen(port);
