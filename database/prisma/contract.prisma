@@ -1,0 +1,263 @@
+  // use prisma-next
+
+enum UserRole {
+  @@type("pg/text@1")
+
+  USER  = "USER"
+  ADMIN = "ADMIN"
+}
+
+enum VerificationStatus {
+  @@type("pg/text@1")
+
+  PENDING  = "PENDING"
+  VERIFIED = "VERIFIED"
+  REJECTED = "REJECTED"
+}
+
+enum AuthProvider {
+  @@type("pg/text@1")
+
+  PASSWORD = "PASSWORD"
+  GOOGLE   = "GOOGLE"
+}
+
+enum ComplaintStatus {
+  @@type("pg/text@1")
+
+  SUBMITTED  = "SUBMITTED"
+  PROCESSING = "PROCESSING"
+  RESOLVED   = "RESOLVED"
+  REJECTED   = "REJECTED"
+}
+
+enum CommentVisibility {
+  @@type("pg/text@1")
+
+  PUBLIC   = "PUBLIC"
+  INTERNAL = "INTERNAL"
+}
+
+model User {
+  id                    Uuid        @id @default(uuid())
+  email                 String      @unique
+  username              String?     @unique
+  name                  String
+  phone                 String?
+  address               String?
+  avatarUrl             String?
+  role                  UserRole    @default(USER)
+  twoFactorEnabled      Boolean     @default(false)
+  biometricEnabled      Boolean     @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt temporal.updatedAt()
+
+  verification          UserVerification?
+  authAccounts          AuthAccount[]
+  complaints            Complaint[]              @relation("reportedComplaints")
+  assignedComplaints    Complaint[]              @relation("assignedComplaints")
+  comments              ComplaintComment[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  statusHistoryChanges  ComplaintStatusHistory[]
+  systemSettingsUpdated SystemSetting[]
+  emailTemplatesUpdated EmailTemplate[]
+
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model UserVerification {
+  id               Uuid               @id @default(uuid())
+  userId           Uuid               @unique
+  nik              String
+  status           VerificationStatus @default(PENDING)
+  verifiedAt       DateTime?
+  rejectionReason  String?
+  createdAt        DateTime           @default(now())
+  updatedAt temporal.updatedAt()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("user_verifications")
+}
+
+model AuthAccount {
+  id                Uuid         @id @default(uuid())
+  userId            Uuid
+  provider          AuthProvider
+  providerAccountId String?
+  passwordHash      String?
+  createdAt         DateTime     @default(now())
+  updatedAt temporal.updatedAt()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model Category {
+  id          Uuid      @id @default(uuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  complaints Complaint[]
+
+  @@index([isActive])
+  @@map("categories")
+}
+
+model Complaint {
+  id                  Uuid             @id @default(uuid())
+  publicCode          String           @unique
+  userId              Uuid
+  categoryId          Uuid
+  assignedToId        Uuid?
+  title               String
+  locationAddress     String?
+  latitude            Float?
+  longitude           Float?
+  description         String
+  status              ComplaintStatus  @default(SUBMITTED)
+  submittedAt         DateTime         @default(now())
+  deletedAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt temporal.updatedAt()
+
+  reporter            User                      @relation("reportedComplaints", fields: [userId], references: [id], onDelete: Restrict)
+  category            Category                  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  assignedTo          User?                     @relation("assignedComplaints", fields: [assignedToId], references: [id], onDelete: SetNull)
+  attachments         ComplaintAttachment[]
+  statusHistory       ComplaintStatusHistory[]
+  comments            ComplaintComment[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([deletedAt])
+  @@map("complaints")
+}
+
+model ComplaintAttachment {
+  id           Uuid      @id @default(uuid())
+  complaintId  Uuid
+  fileName     String
+  fileUrl      String
+  mimeType     String?
+  fileSize     Int?
+  createdAt    DateTime  @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  @@index([complaintId])
+  @@map("complaint_attachments")
+}
+
+model ComplaintStatusHistory {
+  id          Uuid             @id @default(uuid())
+  complaintId Uuid
+  status      ComplaintStatus
+  changedById Uuid?
+  note        String?
+  createdAt   DateTime         @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  changedBy  User?      @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([complaintId, createdAt])
+  @@index([changedById])
+  @@map("complaint_status_history")
+}
+
+model ComplaintComment {
+  id          Uuid              @id @default(uuid())
+  complaintId Uuid
+  authorId    Uuid?
+  content     String
+  visibility  CommentVisibility @default(PUBLIC)
+  createdAt   DateTime          @default(now())
+  updatedAt temporal.updatedAt()
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  author    User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([complaintId, createdAt])
+  @@index([authorId])
+  @@index([visibility])
+  @@map("complaint_comments")
+}
+
+model Notification {
+  id        Uuid      @id @default(uuid())
+  userId    Uuid
+  type      String
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         Uuid      @id @default(uuid())
+  actorId    Uuid?
+  action     String
+  entityType String
+  entityId   Uuid?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id          Uuid      @id @default(uuid())
+  key         String    @unique
+  value       String
+  description String?
+  updatedById Uuid?
+  createdAt   DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([updatedById])
+  @@map("system_settings")
+}
+
+model EmailTemplate {
+  id          Uuid      @id @default(uuid())
+  key         String    @unique
+  subject     String
+  body        String
+  isActive    Boolean   @default(true)
+  updatedById Uuid?
+  createdAt   DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([isActive])
+  @@index([updatedById])
+  @@map("email_templates")
+}
