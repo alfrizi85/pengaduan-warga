@@ -13,6 +13,7 @@
   "devDependencies": {
     "@prisma/cli-engine": "^0.2.3",
     "@types/node": "^26.4.0",
-    "prisma": "^8.0.0-rc.10"
+    "prisma": "^8.0.0-rc.10",
+    "typescript": "^5.9.3"
   }
 }
