@@ -6,14 +6,18 @@ import {
 import { Temporal } from '@js-temporal/polyfill';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { AdminAuditService } from '../admin/audit/admin-audit.service';
 import { CreateComplaintDto } from './dto/create-complaint.dto';
 import { UpdateComplaintDto } from './dto/update-complaint.dto';
 import { UpdateComplaintStatusDto } from './dto/update-complaint-status.dto';
 import { CreateComplaintCommentDto } from './dto/create-complaint-comment.dto';
+import { NotificationService } from '../notification/notification.service';
 @Injectable()
 export class ComplaintService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly adminAuditService: AdminAuditService,
+    private readonly notifications: NotificationService,
   ) {}
 
   async create(
@@ -262,6 +266,24 @@ async updateStatus(
     changedById: adminId,
     note: dto.note,
   });
+  await this.adminAuditService.create({
+    actorId: adminId,
+    action: 'UPDATE_COMPLAINT_STATUS',
+    entityType: 'Complaint',
+    entityId: id,
+    metadata: {
+      fromStatus: currentStatus,
+      toStatus: nextStatus,
+      note: dto.note ?? null,
+    },
+  });
+
+  await this.notifications.create({
+    userId: complaint.userId,
+    title: 'Status pengaduan diperbarui',
+    message: `Status pengaduan berubah dari ${currentStatus} menjadi ${nextStatus}.`,
+    type: 'COMPLAINT_STATUS_CHANGED',
+  });
 
   return updatedComplaint;
 }
@@ -339,12 +361,27 @@ async createComment(
       ? dto.visibility ?? 'PUBLIC'
       : 'PUBLIC';
 
-  return this.prisma.db.orm.public.ComplaintComment.create({
+  const comment = await this.prisma.db.orm.public.ComplaintComment.create({
     complaintId,
     authorId: userId,
     content: dto.content,
     visibility,
   });
+
+  if (role === 'ADMIN') {
+    await this.adminAuditService.create({
+      actorId: userId,
+      action: 'CREATE_COMPLAINT_COMMENT',
+      entityType: 'ComplaintComment',
+      entityId: comment.id,
+      metadata: {
+        complaintId,
+        visibility,
+      },
+    });
+  }
+
+  return comment;
 }
 
 async getComments(
@@ -441,3 +478,9 @@ async uploadAttachment(
 }
 
 }
+
+
+
+
+
+

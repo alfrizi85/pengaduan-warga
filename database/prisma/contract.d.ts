@@ -22,6 +22,7 @@ import type {
 
 import type {
   ContractWithTypeMaps,
+  RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
 import type {
@@ -743,6 +744,200 @@ export type StorageColumnInputTypes = {
     };
   };
 };
+
+export namespace Models {
+  export type public_User = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    email: CodecTypes['pg/text@1']['output'];
+    username: CodecTypes['pg/text@1']['output'] | null;
+    name: CodecTypes['pg/text@1']['output'];
+    phone: CodecTypes['pg/text@1']['output'] | null;
+    address: CodecTypes['pg/text@1']['output'] | null;
+    avatarUrl: CodecTypes['pg/text@1']['output'] | null;
+    role: 'USER' | 'ADMIN';
+    twoFactorEnabled: CodecTypes['pg/bool@1']['output'];
+    biometricEnabled: CodecTypes['pg/bool@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    assignedComplaints: public_Complaint[];
+    auditLogs: public_AuditLog[];
+    authAccounts: public_AuthAccount[];
+    comments: public_ComplaintComment[];
+    complaints: public_Complaint[];
+    emailTemplatesUpdated: public_EmailTemplate[];
+    notifications: public_Notification[];
+    statusHistoryChanges: public_ComplaintStatusHistory[];
+    systemSettingsUpdated: public_SystemSetting[];
+    verification: public_UserVerification | null;
+    readonly [RelationKeys]?:
+      | 'assignedComplaints'
+      | 'auditLogs'
+      | 'authAccounts'
+      | 'comments'
+      | 'complaints'
+      | 'emailTemplatesUpdated'
+      | 'notifications'
+      | 'statusHistoryChanges'
+      | 'systemSettingsUpdated'
+      | 'verification';
+  };
+  export type public_UserVerification = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    nik: CodecTypes['pg/text@1']['output'];
+    status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+    verifiedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    rejectionReason: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_AuthAccount = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    provider: 'PASSWORD' | 'GOOGLE';
+    providerAccountId: CodecTypes['pg/text@1']['output'] | null;
+    passwordHash: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_Category = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    description: CodecTypes['pg/text@1']['output'] | null;
+    isActive: CodecTypes['pg/bool@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    complaints: public_Complaint[];
+    readonly [RelationKeys]?: 'complaints';
+  };
+  export type public_Complaint = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    publicCode: CodecTypes['pg/text@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    categoryId: CodecTypes['pg/uuid@1']['output'];
+    assignedToId: CodecTypes['pg/uuid@1']['output'] | null;
+    title: CodecTypes['pg/text@1']['output'];
+    locationAddress: CodecTypes['pg/text@1']['output'] | null;
+    latitude: CodecTypes['pg/float8@1']['output'] | null;
+    longitude: CodecTypes['pg/float8@1']['output'] | null;
+    description: CodecTypes['pg/text@1']['output'];
+    status: 'SUBMITTED' | 'PROCESSING' | 'RESOLVED' | 'REJECTED';
+    submittedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    deletedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    assignedTo: public_User | null;
+    attachments: public_ComplaintAttachment[];
+    category: public_Category;
+    comments: public_ComplaintComment[];
+    reporter: public_User;
+    statusHistory: public_ComplaintStatusHistory[];
+    readonly [RelationKeys]?:
+      'assignedTo' | 'attachments' | 'category' | 'comments' | 'reporter' | 'statusHistory';
+  };
+  export type public_ComplaintAttachment = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    complaintId: CodecTypes['pg/uuid@1']['output'];
+    fileName: CodecTypes['pg/text@1']['output'];
+    fileUrl: CodecTypes['pg/text@1']['output'];
+    mimeType: CodecTypes['pg/text@1']['output'] | null;
+    fileSize: CodecTypes['pg/int4@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    complaint: public_Complaint;
+    readonly [RelationKeys]?: 'complaint';
+  };
+  export type public_ComplaintStatusHistory = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    complaintId: CodecTypes['pg/uuid@1']['output'];
+    status: 'SUBMITTED' | 'PROCESSING' | 'RESOLVED' | 'REJECTED';
+    changedById: CodecTypes['pg/uuid@1']['output'] | null;
+    note: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    changedBy: public_User | null;
+    complaint: public_Complaint;
+    readonly [RelationKeys]?: 'changedBy' | 'complaint';
+  };
+  export type public_ComplaintComment = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    complaintId: CodecTypes['pg/uuid@1']['output'];
+    authorId: CodecTypes['pg/uuid@1']['output'] | null;
+    content: CodecTypes['pg/text@1']['output'];
+    visibility: 'PUBLIC' | 'INTERNAL';
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    author: public_User | null;
+    complaint: public_Complaint;
+    readonly [RelationKeys]?: 'author' | 'complaint';
+  };
+  export type public_Notification = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    userId: CodecTypes['pg/uuid@1']['output'];
+    type: CodecTypes['pg/text@1']['output'];
+    title: CodecTypes['pg/text@1']['output'];
+    message: CodecTypes['pg/text@1']['output'];
+    readAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
+  export type public_AuditLog = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    actorId: CodecTypes['pg/uuid@1']['output'] | null;
+    action: CodecTypes['pg/text@1']['output'];
+    entityType: CodecTypes['pg/text@1']['output'];
+    entityId: CodecTypes['pg/uuid@1']['output'] | null;
+    metadata: CodecTypes['pg/json@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    actor: public_User | null;
+    readonly [RelationKeys]?: 'actor';
+  };
+  export type public_SystemSetting = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    key: CodecTypes['pg/text@1']['output'];
+    value: CodecTypes['pg/text@1']['output'];
+    description: CodecTypes['pg/text@1']['output'] | null;
+    updatedById: CodecTypes['pg/uuid@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedBy: public_User | null;
+    readonly [RelationKeys]?: 'updatedBy';
+  };
+  export type public_EmailTemplate = {
+    id: CodecTypes['pg/uuid@1']['output'];
+    key: CodecTypes['pg/text@1']['output'];
+    subject: CodecTypes['pg/text@1']['output'];
+    body: CodecTypes['pg/text@1']['output'];
+    isActive: CodecTypes['pg/bool@1']['output'];
+    updatedById: CodecTypes['pg/uuid@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedBy: public_User | null;
+    readonly [RelationKeys]?: 'updatedBy';
+  };
+}
+
+export declare const models: {
+  public: {
+    User: Models.public_User;
+    UserVerification: Models.public_UserVerification;
+    AuthAccount: Models.public_AuthAccount;
+    Category: Models.public_Category;
+    Complaint: Models.public_Complaint;
+    ComplaintAttachment: Models.public_ComplaintAttachment;
+    ComplaintStatusHistory: Models.public_ComplaintStatusHistory;
+    ComplaintComment: Models.public_ComplaintComment;
+    Notification: Models.public_Notification;
+    AuditLog: Models.public_AuditLog;
+    SystemSetting: Models.public_SystemSetting;
+    EmailTemplate: Models.public_EmailTemplate;
+  };
+};
+
 export type TypeMaps = TypeMapsType<
   CodecTypes,
   QueryOperationTypes,
@@ -1868,6 +2063,7 @@ type ContractBase = Omit<
               readonly actor: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['actorId'];
                   readonly targetFields: readonly ['id'];
@@ -1929,6 +2125,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -2087,6 +2284,7 @@ type ContractBase = Omit<
               readonly assignedTo: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['assignedToId'];
                   readonly targetFields: readonly ['id'];
@@ -2109,6 +2307,7 @@ type ContractBase = Omit<
                   readonly model: 'Category';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['categoryId'];
                   readonly targetFields: readonly ['id'];
@@ -2128,6 +2327,7 @@ type ContractBase = Omit<
               readonly reporter: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -2208,6 +2408,7 @@ type ContractBase = Omit<
                   readonly model: 'Complaint';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['complaintId'];
                   readonly targetFields: readonly ['id'];
@@ -2269,6 +2470,7 @@ type ContractBase = Omit<
               readonly author: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['authorId'];
                   readonly targetFields: readonly ['id'];
@@ -2280,6 +2482,7 @@ type ContractBase = Omit<
                   readonly model: 'Complaint';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['complaintId'];
                   readonly targetFields: readonly ['id'];
@@ -2334,6 +2537,7 @@ type ContractBase = Omit<
               readonly changedBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['changedById'];
                   readonly targetFields: readonly ['id'];
@@ -2345,6 +2549,7 @@ type ContractBase = Omit<
                   readonly model: 'Complaint';
                 };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['complaintId'];
                   readonly targetFields: readonly ['id'];
@@ -2409,6 +2614,7 @@ type ContractBase = Omit<
               readonly updatedBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['updatedById'];
                   readonly targetFields: readonly ['id'];
@@ -2471,6 +2677,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];
@@ -2532,6 +2739,7 @@ type ContractBase = Omit<
               readonly updatedBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['updatedById'];
                   readonly targetFields: readonly ['id'];
@@ -2722,6 +2930,7 @@ type ContractBase = Omit<
                   readonly model: 'UserVerification';
                 };
                 readonly cardinality: '1:1';
+                readonly nullable: true;
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['userId'];
@@ -2796,6 +3005,7 @@ type ContractBase = Omit<
               readonly user: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
+                readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['userId'];
                   readonly targetFields: readonly ['id'];

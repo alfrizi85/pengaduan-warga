@@ -23,6 +23,42 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
+  it('protects complaint business endpoints', () => {
+    return request(app.getHttpServer())
+      .get('/complaints')
+      .expect(401);
+  });
+
+  it('protects admin workflow endpoints', () => {
+    return request(app.getHttpServer())
+      .get('/admin/complaints')
+      .expect(401);
+  });
+
+  it('protects notification endpoints', async () => {
+    await request(app.getHttpServer())
+      .get('/notifications')
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .get('/notifications/unread-count')
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .patch('/notifications/notification-1/read')
+      .expect(401);
+
+    await request(app.getHttpServer())
+      .post('/notifications/admin')
+      .send({
+        userId: '00000000-0000-0000-0000-000000000001',
+        title: 'Test',
+        message: 'Test',
+        type: 'TEST',
+      })
+      .expect(401);
+  });
+
   afterEach(async () => {
     await app.close();
   });

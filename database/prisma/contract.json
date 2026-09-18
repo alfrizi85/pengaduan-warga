@@ -191,6 +191,7 @@
             "relations": {
               "actor": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "actorId"
@@ -294,6 +295,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -540,6 +542,7 @@
             "relations": {
               "assignedTo": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "assignedToId"
@@ -570,6 +573,7 @@
               },
               "category": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "categoryId"
@@ -600,6 +604,7 @@
               },
               "reporter": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -736,6 +741,7 @@
             "relations": {
               "complaint": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "complaintId"
@@ -839,6 +845,7 @@
             "relations": {
               "author": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "authorId"
@@ -854,6 +861,7 @@
               },
               "complaint": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "complaintId"
@@ -950,6 +958,7 @@
             "relations": {
               "changedBy": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "changedById"
@@ -965,6 +974,7 @@
               },
               "complaint": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "complaintId"
@@ -1066,6 +1076,7 @@
             "relations": {
               "updatedBy": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "updatedById"
@@ -1166,6 +1177,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -1263,6 +1275,7 @@
             "relations": {
               "updatedBy": {
                 "cardinality": "N:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "updatedById"
@@ -1543,6 +1556,7 @@
               },
               "verification": {
                 "cardinality": "1:1",
+                "nullable": true,
                 "on": {
                   "localFields": [
                     "id"
@@ -1671,6 +1685,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
